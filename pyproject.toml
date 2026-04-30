@@ -10,7 +10,7 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [
-    { name = "Isaac López", email = "isaaclopg@gmail.com" },
+    { name = "Isaac López", email = "jisaaclopg@gmail.com" },
 ]
 keywords = [
     "actuarial",
