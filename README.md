@@ -58,8 +58,7 @@ via AIC, then run goodness-of-fit tests:
 
 ```python
 import numpy as np
-from actudist import DistributionFitter, GoodnessOfFit
-from actudist.severity.burrxii import BurrXII
+from actudist.core import BurrXII, DistributionFitter, GoodnessOfFit
 
 # Simulated claim severity data (right-skewed, heavy-tailed)
 rng = np.random.default_rng(42)
@@ -76,19 +75,13 @@ print(f"Burr XII AIC: {burr.aic(claims):.1f}")
 # Compare multiple candidates
 fitter = DistributionFitter(candidates=["BurrXII", "Lognormal", "Pareto"])
 rankings = fitter.fit_and_rank(claims, criterion="aic")
-for r in rankings:
-    print(f"{r['name']:>14}  AIC={r['aic']:.1f}  BIC={r['bic']:.1f}")
+print(rankings)
 
-# Goodness-of-fit testing (parametric-bootstrap p-values)
+# Goodness-of-fit testing
 gof = GoodnessOfFit(distribution=burr, data=claims)
-print(gof.ks_test(n_boot=500))
-print(gof.anderson_darling_test(n_boot=500))
+gof.ks_test()
+gof.anderson_darling_test()
 gof.qq_plot()
-
-# Profile-likelihood 95% CI for each Burr XII parameter
-for p in ("alpha", "theta", "gamma"):
-    lo, hi = burr.profile_likelihood_ci(claims, p)
-    print(f"{p}: [{lo:.3f}, {hi:.3f}]")
 ```
 
 ---
