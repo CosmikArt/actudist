@@ -139,12 +139,17 @@ class TestDistributionFitter:
         assert fitter.candidates == []
         assert fitter.results_ is None
 
-    def test_fit_and_rank_not_yet_implemented(self) -> None:
+    def test_fit_and_rank_empty_returns_empty(self) -> None:
+        fitter = DistributionFitter(candidates=[])
+        assert fitter.fit_and_rank([1.0, 2.0]) == []
+        assert fitter.results_ == []
+
+    def test_fit_and_rank_rejects_unknown_criterion(self) -> None:
         import pytest
 
         fitter = DistributionFitter(candidates=[])
-        with pytest.raises(NotImplementedError):
-            fitter.fit_and_rank([1.0, 2.0])
+        with pytest.raises(ValueError):
+            fitter.fit_and_rank([1.0, 2.0], criterion="ric")
 
 
 class TestGoodnessOfFit:
