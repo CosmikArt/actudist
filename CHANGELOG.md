@@ -4,14 +4,6 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-### Test coverage
-
-- Line coverage is **100%** (1766/1766 statements) across the package.
-  Targeted tests cover every defensive branch including the bootstrap
-  fit-failure path, profile-likelihood walk exhaustion, optimizer
-  Nelder-Mead fallbacks, and parameter-validation guards on every
-  distribution.
-
 ### Added
 
 - **Severity (Klugman 5e Appendix A.2):** `Exponential`, `Pareto` (Type II /
