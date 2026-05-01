@@ -25,3 +25,4 @@ from actudist.severity import transformed_gamma as _transformed_gamma  # noqa: F
 from actudist.severity import (  # noqa: F401
     inverse_transformed_gamma as _inverse_transformed_gamma,
 )
+from actudist.severity import transformed_beta as _transformed_beta  # noqa: F401
