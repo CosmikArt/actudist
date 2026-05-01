@@ -8,6 +8,7 @@ parameterizations).
 
 from __future__ import annotations
 
-# Concrete distribution modules will be imported here as they land in
-# Phase 1. Importing this package therefore triggers their @register
-# decorators and populates SEVERITY_REGISTRY.
+# Concrete distribution modules are imported here so their @register
+# decorators populate SEVERITY_REGISTRY at package import time.
+
+from actudist.severity import exponential as _exponential  # noqa: F401
