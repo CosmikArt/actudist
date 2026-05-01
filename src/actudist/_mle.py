@@ -248,14 +248,9 @@ def profile_likelihood_ci(
                     return float(brentq(_g, bracket_inner, bracket_outer, xtol=1e-6))
                 except Exception:
                     return None
-            # extend further
+            # extend further: geometric for log-transformed params
             bracket_inner = bracket_outer
             if is_log:
-                bracket_outer = (
-                    point * (1.5 ** ((bracket_outer / point))) if direction > 0 else
-                    point / (1.5 ** ((point / max(bracket_outer, 1e-12))))
-                )
-                # simpler: just multiply by 2 each time, capped
                 bracket_outer = (
                     bracket_inner * 2.0 if direction > 0 else bracket_inner * 0.5
                 )
