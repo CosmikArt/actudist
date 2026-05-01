@@ -21,3 +21,7 @@ from actudist.severity import loglogistic as _loglogistic  # noqa: F401
 from actudist.severity import paralogistic as _paralogistic  # noqa: F401
 from actudist.severity import inverse_paralogistic as _inverse_paralogistic  # noqa: F401
 from actudist.severity import inverse_gaussian as _inverse_gaussian  # noqa: F401
+from actudist.severity import transformed_gamma as _transformed_gamma  # noqa: F401
+from actudist.severity import (  # noqa: F401
+    inverse_transformed_gamma as _inverse_transformed_gamma,
+)
