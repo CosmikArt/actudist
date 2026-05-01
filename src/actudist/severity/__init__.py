@@ -15,3 +15,4 @@ from actudist.severity import exponential as _exponential  # noqa: F401
 from actudist.severity import pareto as _pareto  # noqa: F401
 from actudist.severity import lognormal as _lognormal  # noqa: F401
 from actudist.severity import weibull as _weibull  # noqa: F401
+from actudist.severity import gamma as _gamma  # noqa: F401
