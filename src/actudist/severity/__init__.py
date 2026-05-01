@@ -20,3 +20,4 @@ from actudist.severity import burrxii as _burrxii  # noqa: F401
 from actudist.severity import loglogistic as _loglogistic  # noqa: F401
 from actudist.severity import paralogistic as _paralogistic  # noqa: F401
 from actudist.severity import inverse_paralogistic as _inverse_paralogistic  # noqa: F401
+from actudist.severity import inverse_gaussian as _inverse_gaussian  # noqa: F401
