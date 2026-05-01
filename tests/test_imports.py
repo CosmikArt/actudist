@@ -153,14 +153,16 @@ class TestGoodnessOfFit:
         assert gof.distribution is None
         assert len(gof.data) == 3
 
-    def test_methods_pending_phase_3(self) -> None:
+    def test_methods_require_distribution(self) -> None:
         import pytest
 
         gof = GoodnessOfFit(distribution=None, data=np.array([1.0]))
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(ValueError):
             gof.ks_test()
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(ValueError):
             gof.anderson_darling_test()
+        with pytest.raises(ValueError):
+            gof.chi_squared_test()
 
 
 class TestMleHelpersExist:
