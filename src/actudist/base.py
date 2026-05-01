@@ -72,6 +72,29 @@ class ActuarialDistribution:
         n = int(np.asarray(data).size)
         return -2.0 * self.loglik(data, **kwargs) + self.n_params * np.log(n)
 
+    def profile_likelihood_ci(
+        self,
+        data: ArrayLike,
+        param: str,
+        *,
+        alpha: float = 0.05,
+        **fit_kwargs: Any,
+    ) -> tuple[float, float]:
+        """Profile-likelihood :math:`(1-\\alpha)` CI for ``param``.
+
+        Requires that ``self`` is already MLE-fitted. The other parameters
+        are re-optimized at each grid point of ``param``.
+        """
+        from actudist._mle import profile_likelihood_ci as _impl
+
+        return _impl(
+            self,
+            np.asarray(data, dtype=float),
+            param,
+            alpha=alpha,
+            fit_kwargs=fit_kwargs,
+        )
+
     # -- Required hooks for _mle driver -----------------------------------
 
     @classmethod

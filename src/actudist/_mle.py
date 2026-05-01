@@ -147,6 +147,142 @@ def loglik_discrete(dist: Any, data: np.ndarray) -> float:
     return float(np.sum(safe_log(np.asarray(dist.pmf(data)))))
 
 
+def profile_likelihood_ci(
+    fitted_dist: Any,
+    data: np.ndarray,
+    param: str,
+    *,
+    alpha: float = 0.05,
+    fit_kwargs: dict[str, Any] | None = None,
+    max_expansions: int = 30,
+) -> tuple[float, float]:
+    r"""Profile-likelihood confidence interval for a single parameter of a
+    fitted distribution.
+
+    The :math:`(1-\alpha)` CI is the set of values :math:`\theta` for which
+
+    .. math::
+        2\,\bigl(\ell(\hat\theta_{\text{full}}) - \ell_{\text{p}}(\theta)\bigr)
+        \leq \chi^{2}_{1,1-\alpha},
+
+    where :math:`\ell_{\text{p}}(\theta)` is the maximized log-likelihood
+    with ``param`` fixed at :math:`\theta`. We bracket each boundary by
+    walking geometrically away from the MLE until the profile likelihood
+    drops below the threshold, then refine via Brent's root-finder.
+    """
+    from scipy.optimize import brentq
+    from scipy.stats import chi2
+
+    if fit_kwargs is None:
+        fit_kwargs = {}
+
+    transforms = type(fitted_dist)._transforms()
+    transform_map = dict(transforms)
+    if param not in transform_map:
+        raise KeyError(f"{param!r} is not a fittable parameter")
+
+    cls = type(fitted_dist)
+    is_continuous = hasattr(cls, "pdf")
+    full_ll = float(fitted_dist.loglik(data, **fit_kwargs))
+    threshold = full_ll - 0.5 * float(chi2.ppf(1.0 - alpha, df=1))
+    point = float(getattr(fitted_dist, param))
+    other_transforms = [t for t in transforms if t[0] != param]
+
+    def _profile_ll(theta: float) -> float:
+        """Maximized log-likelihood with ``param`` fixed at ``theta``."""
+        from actudist._numerics import to_unconstrained
+
+        if not other_transforms:
+            inst = cls(**{param: float(theta)})
+            return float(inst.loglik(data, **fit_kwargs))
+        init = {n: float(getattr(fitted_dist, n)) for n, _ in other_transforms}
+        u0 = to_unconstrained(init, other_transforms)
+
+        def _neg(u: np.ndarray) -> float:
+            try:
+                free = from_unconstrained(u, other_transforms)
+                params = {**free, param: float(theta)}
+                inst = cls(**params)
+                if is_continuous:
+                    ll = loglik_continuous(inst, data, **fit_kwargs)
+                else:
+                    ll = loglik_discrete(inst, data)
+                return -ll if np.isfinite(ll) else _HUGE
+            except Exception:
+                return _HUGE
+
+        res = minimize(
+            _neg, u0, method="Nelder-Mead",
+            options={"xatol": 1e-6, "fatol": 1e-6, "maxiter": 2000},
+        )
+        return -float(res.fun)
+
+    def _g(theta: float) -> float:
+        return _profile_ll(theta) - threshold
+
+    # Initial step: arithmetic for identity-transform params, geometric for others
+    is_log = transform_map[param] == "log"
+    is_logit = transform_map[param] == "logit"
+
+    def _walk(direction: int) -> float | None:
+        # 'direction' ∈ {-1, +1}; return crossing or None if not found
+        bracket_inner = point
+        # initial step size
+        step = max(abs(point) * 0.05, 0.05)
+        bracket_outer = point + direction * step
+        if is_log and bracket_outer <= 0:
+            bracket_outer = point * 0.5 if direction < 0 else point * 1.5
+        if is_logit and direction > 0 and bracket_outer >= 1.0:
+            bracket_outer = (point + 1.0) / 2.0
+        if is_logit and direction < 0 and bracket_outer <= 0.0:
+            bracket_outer = point / 2.0
+
+        for _ in range(max_expansions):
+            try:
+                g_outer = _g(bracket_outer)
+            except Exception:
+                return None
+            if g_outer < 0.0:
+                # found a sign change between inner and outer; refine
+                try:
+                    return float(brentq(_g, bracket_inner, bracket_outer, xtol=1e-6))
+                except Exception:
+                    return None
+            # extend further
+            bracket_inner = bracket_outer
+            if is_log:
+                bracket_outer = (
+                    point * (1.5 ** ((bracket_outer / point))) if direction > 0 else
+                    point / (1.5 ** ((point / max(bracket_outer, 1e-12))))
+                )
+                # simpler: just multiply by 2 each time, capped
+                bracket_outer = (
+                    bracket_inner * 2.0 if direction > 0 else bracket_inner * 0.5
+                )
+                if bracket_outer < 1e-12:
+                    return None
+            elif is_logit:
+                if direction > 0:
+                    bracket_outer = (bracket_inner + 1.0) / 2.0
+                    if bracket_outer >= 1.0 - 1e-9:
+                        return None
+                else:
+                    bracket_outer = bracket_inner / 2.0
+                    if bracket_outer <= 1e-9:
+                        return None
+            else:
+                step *= 2.0
+                bracket_outer = bracket_inner + direction * step
+        return None
+
+    lo_cross = _walk(-1)
+    hi_cross = _walk(+1)
+    return (
+        -np.inf if lo_cross is None else lo_cross,
+        np.inf if hi_cross is None else hi_cross,
+    )
+
+
 def fit_discrete_mle(
     dist_class: type,
     data: np.ndarray,
