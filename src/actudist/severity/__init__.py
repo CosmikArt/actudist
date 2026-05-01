@@ -18,3 +18,4 @@ from actudist.severity import weibull as _weibull  # noqa: F401
 from actudist.severity import gamma as _gamma  # noqa: F401
 from actudist.severity import burrxii as _burrxii  # noqa: F401
 from actudist.severity import loglogistic as _loglogistic  # noqa: F401
+from actudist.severity import paralogistic as _paralogistic  # noqa: F401
