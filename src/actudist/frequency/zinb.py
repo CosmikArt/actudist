@@ -105,15 +105,18 @@ class ZeroInflatedNegativeBinomial(FrequencyDistribution):
         return out
 
     def ppf(self, q: ArrayLike) -> np.ndarray:
-        q = np.atleast_1d(np.asarray(q, dtype=float))
-        out = np.empty_like(q, dtype=float)
-        for i, qi in enumerate(q):
-            k = 0
-            while self.cdf(np.array([k]))[0] < qi:
-                k += 1
-                if k > 10**6:
-                    break
-            out[i] = float(k)
+        # F_ZINB(k) = pi + (1 - pi) * F_NB(k). Invert by transforming the
+        # quantile and dispatching to scipy. Vectorised; no Python loop;
+        # no silent cap.
+        from scipy.stats import nbinom as _sp_nbinom
+
+        q_arr = np.atleast_1d(np.asarray(q, dtype=float))
+        out = np.zeros_like(q_arr, dtype=float)
+        above = q_arr > self.pi
+        if np.any(above):
+            q_adj = (q_arr[above] - self.pi) / (1.0 - self.pi)
+            q_adj = np.clip(q_adj, 0.0, 1.0)
+            out[above] = _sp_nbinom.ppf(q_adj, n=self.r, p=1.0 / (1.0 + self.beta))
         return out
 
     def rvs(

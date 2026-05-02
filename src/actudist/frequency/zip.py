@@ -84,16 +84,18 @@ class ZeroInflatedPoisson(FrequencyDistribution):
         return out
 
     def ppf(self, q: ArrayLike) -> np.ndarray:
-        # discrete inverse via cdf
-        q = np.atleast_1d(np.asarray(q, dtype=float))
-        out = np.empty_like(q, dtype=float)
-        for i, qi in enumerate(q):
-            k = 0
-            while self.cdf(np.array([k]))[0] < qi:
-                k += 1
-                if k > 10**6:
-                    break
-            out[i] = float(k)
+        # F_ZIP(k) = pi + (1 - pi) * F_Poisson(k). Invert by transforming
+        # the quantile and dispatching to scipy. Vectorised; no Python
+        # loop; no silent cap.
+        from scipy.stats import poisson as _sp_poisson
+
+        q_arr = np.atleast_1d(np.asarray(q, dtype=float))
+        out = np.zeros_like(q_arr, dtype=float)
+        above = q_arr > self.pi
+        if np.any(above):
+            q_adj = (q_arr[above] - self.pi) / (1.0 - self.pi)
+            q_adj = np.clip(q_adj, 0.0, 1.0)
+            out[above] = _sp_poisson.ppf(q_adj, mu=self.lam)
         return out
 
     def rvs(

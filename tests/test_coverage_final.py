@@ -54,26 +54,12 @@ class TestMicroCoverage:
         assert Geometric(beta=2.5).mean() == pytest.approx(2.5)
 
 
-# ---------------------------------------------------------------------------
-# ZIP / ZINB ppf safety break (k > 1e6)
-# ---------------------------------------------------------------------------
-
-
-class TestPpfSafetyBreak:
-    def test_zip_ppf_safety_break_via_unreachable_quantile(self) -> None:
-        """``cdf < q`` is monotone in ``q``; we patch ``cdf`` to always
-        return zero so the inner ``while`` loop runs to the safety
-        break instead of forever."""
-        d = ZeroInflatedPoisson(pi=0.5, lam=1.0)
-        d.cdf = lambda k: np.zeros(np.atleast_1d(k).shape, dtype=float)
-        out = d.ppf(np.array([0.5]))
-        assert out[0] == float(10**6 + 1)
-
-    def test_zinb_ppf_safety_break(self) -> None:
-        d = ZeroInflatedNegativeBinomial(pi=0.3, r=2.0, beta=1.5)
-        d.cdf = lambda k: np.zeros(np.atleast_1d(k).shape, dtype=float)
-        out = d.ppf(np.array([0.5]))
-        assert out[0] == float(10**6 + 1)
+# ZIP / ZINB ppf safety-break tests removed: the bounded loop they
+# documented (k > 10**6 -> break) was the source of AUDIT-H-1 (silent
+# cap that returned 1_000_001 for legitimate quantiles above 1e6). The
+# replacement closed-form implementation has no such break to cover.
+# Behavioural coverage of ZIP/ZINB.ppf is provided by
+# tests/test_audit_h1_zip_zinb_ppf.py.
 
 
 # ---------------------------------------------------------------------------
