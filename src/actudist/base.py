@@ -1,22 +1,20 @@
 """Base classes for actuarial distributions.
 
-The hierarchy is:
+:class:`ActuarialDistribution` is the abstract root. It holds the parameter
+dict, defines ``cdf`` / ``ppf`` / ``rvs`` / ``loglik`` as abstract, and
+implements AIC, BIC, and a profile-likelihood CI on top of them.
 
-* :class:`ActuarialDistribution` — abstract root. Holds parameters, exposes
-  cdf/ppf/rvs/loglik and the AIC/BIC closed forms that depend only on the
-  log-likelihood and parameter count.
+:class:`SeverityDistribution` is continuous on the non-negative reals. It
+adds ``pdf``, survival function, hazard rate, layer statistics (LEV, EPP,
+ILF), and an MLE driver that accepts a right-censoring mask and one- or
+two-sided truncation bounds.
 
-* :class:`SeverityDistribution` — continuous, non-negative-supported.
-  Adds pdf, survival function, hazard rate, limited expected value, excess
-  pure premium, increased limits factor, and an MLE driver that supports
-  right-censoring and left/right truncation.
+:class:`FrequencyDistribution` is discrete on the non-negative integers
+and deliberately omits layer statistics.
 
-* :class:`FrequencyDistribution` — discrete, non-negative integer-supported.
-  Adds pmf and an MLE driver. Layer statistics are intentionally absent.
-
-Each concrete subclass declares (a) the parameter names + transforms it uses
-for unconstrained optimization, and (b) optionally a method-of-moments
-initial guess. See :mod:`actudist._mle` for the fitting machinery.
+Concrete subclasses declare ``_transforms()`` (parameter to log / identity /
+logit) so the MLE driver in :mod:`actudist._mle` can optimize in
+unconstrained space.
 """
 
 from __future__ import annotations
@@ -28,11 +26,11 @@ from numpy.typing import ArrayLike
 
 
 class ActuarialDistribution:
-    """Abstract root for all distributions in actudist.
+    """Abstract root.
 
-    Concrete subclasses must implement :meth:`cdf`, :meth:`ppf`, :meth:`rvs`,
-    and :meth:`loglik`. AIC/BIC are derived automatically from
-    :meth:`loglik` and :attr:`n_params`.
+    Subclasses implement :meth:`cdf`, :meth:`ppf`, :meth:`rvs`, and
+    :meth:`loglik`. AIC and BIC follow from :meth:`loglik` and
+    :attr:`n_params`.
     """
 
     #: Number of free parameters. Subclasses override.
@@ -72,32 +70,46 @@ class ActuarialDistribution:
         n = int(np.asarray(data).size)
         return -2.0 * self.loglik(data, **kwargs) + self.n_params * np.log(n)
 
+    def profile_likelihood_ci(
+        self,
+        data: ArrayLike,
+        param: str,
+        *,
+        alpha: float = 0.05,
+        **fit_kwargs: Any,
+    ) -> tuple[float, float]:
+        """Profile-likelihood :math:`(1-\\alpha)` CI for ``param``.
+
+        Requires that ``self`` is already MLE-fitted. The other parameters
+        are re-optimized at each grid point of ``param``.
+        """
+        from actudist._mle import profile_likelihood_ci as _impl
+
+        return _impl(
+            self,
+            np.asarray(data, dtype=float),
+            param,
+            alpha=alpha,
+            fit_kwargs=fit_kwargs,
+        )
+
     # -- Required hooks for _mle driver -----------------------------------
 
     @classmethod
     def _transforms(cls) -> list[tuple[str, str]]:
-        """Return ``[(param_name, transform), ...]`` where ``transform`` is one
-        of ``"log"``, ``"identity"``, or ``"logit"``. Used by the MLE driver
-        to optimize in an unconstrained space.
-        """
+        """Return ``[(param_name, transform), ...]`` with ``transform`` in
+        ``{"log", "identity", "logit"}``."""
         raise NotImplementedError
 
     @classmethod
     def _initial_guess(cls, data: ArrayLike) -> dict[str, float]:
-        """Method-of-moments or heuristic initial guess for MLE.
-
-        Default falls back to ``1.0`` for every parameter; subclasses should
-        override when a moment-based start is available.
-        """
+        """Initial guess for MLE; defaults to ``1.0`` per parameter."""
         return {name: 1.0 for name, _ in cls._transforms()}
 
 
 class SeverityDistribution(ActuarialDistribution):
-    """Continuous, non-negative-supported actuarial distribution.
-
-    Adds the pdf and the actuarial layer statistics that distinguish this
-    library from a generic ``scipy.stats`` wrapper.
-    """
+    """Continuous distribution on :math:`x \\ge 0`. Adds pdf, survival
+    function, hazard rate, and the actuarial layer statistics."""
 
     def pdf(self, x: ArrayLike) -> np.ndarray:
         raise NotImplementedError
@@ -119,18 +131,15 @@ class SeverityDistribution(ActuarialDistribution):
     # -- Layer statistics --------------------------------------------------
 
     def limited_expected_value(self, d: float) -> float:
-        r"""Limited expected value: :math:`E[\min(X, d)] = \int_0^d S(x)\,dx`.
-
-        Subclasses override with a closed form when one is available; the
-        default uses :func:`actudist._numerics.numeric_lev`.
-        """
+        r"""Returns :math:`E[\min(X, d)] = \int_0^d S(x)\,dx`. Default is
+        quadrature; subclasses override with closed forms."""
         from actudist._numerics import numeric_lev
 
         return numeric_lev(lambda x: float(self.survival_function(x)), float(d))
 
     def excess_pure_premium(self, d: float) -> float:
-        r""":math:`E[X] - \mathrm{LEV}(d)`. Pure premium of an excess-of-loss
-        layer attaching at *d* with no upper limit."""
+        r"""Returns :math:`E[X] - \mathrm{LEV}(d)`, the pure premium of an
+        unlimited excess layer attaching at *d*."""
         return float(self.mean()) - self.limited_expected_value(d)
 
     def increased_limits_factor(self, d: float, base_d: float) -> float:
@@ -150,10 +159,8 @@ class SeverityDistribution(ActuarialDistribution):
         trunc_lower: float | None = None,
         trunc_upper: float | None = None,
     ) -> float:
-        """Log-likelihood with optional right-censoring and truncation.
-
-        See :func:`actudist._mle.loglik_continuous` for the formula.
-        """
+        """Log-likelihood with right-censoring and truncation hooks; see
+        :func:`actudist._mle.loglik_continuous` for the formula."""
         from actudist._mle import loglik_continuous
 
         return loglik_continuous(
@@ -172,7 +179,7 @@ class SeverityDistribution(ActuarialDistribution):
         trunc_lower: float | None = None,
         trunc_upper: float | None = None,
     ) -> dict[str, float]:
-        """Fit by MLE and store estimated parameters on ``self``."""
+        """Fit by MLE; store fitted parameters on ``self``."""
         from actudist._mle import fit_continuous_mle
 
         params = fit_continuous_mle(
@@ -190,11 +197,8 @@ class SeverityDistribution(ActuarialDistribution):
 
 
 class FrequencyDistribution(ActuarialDistribution):
-    """Discrete, non-negative integer-supported distribution.
-
-    Frequency models in actudist deliberately do **not** inherit layer
-    statistics; LEV/EPP are severity concepts.
-    """
+    """Discrete distribution on :math:`k \\in \\{0, 1, 2, \\dots\\}`. No
+    layer statistics: LEV and EPP are severity concepts."""
 
     def pmf(self, k: ArrayLike) -> np.ndarray:
         raise NotImplementedError

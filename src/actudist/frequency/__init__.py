@@ -1,11 +1,11 @@
-"""Discrete frequency distributions.
-
-Each distribution lives in its own module and registers itself with
-:data:`actudist.fitting.FREQUENCY_REGISTRY` at import time. Phase 2 of
-the v0.1.0 roadmap fills these in (Klugman Chapter 6 parameterizations).
-"""
+"""Discrete frequency distributions (Klugman ch. 6). Each module registers
+its class with :data:`actudist.fitting.FREQUENCY_REGISTRY` on import."""
 
 from __future__ import annotations
 
-# Concrete distribution modules will be imported here as they land in
-# Phase 2.
+from actudist.frequency import poisson as _poisson  # noqa: F401
+from actudist.frequency import binomial as _binomial  # noqa: F401
+from actudist.frequency import negative_binomial as _negative_binomial  # noqa: F401
+from actudist.frequency import geometric as _geometric  # noqa: F401
+from actudist.frequency import zip as _zip  # noqa: F401
+from actudist.frequency import zinb as _zinb  # noqa: F401

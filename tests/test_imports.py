@@ -1,7 +1,6 @@
-"""Smoke tests for the new modular layout: imports, base hierarchy, registry
-mechanics, and MLE-helper sanity. Concrete distributions are tested in the
-``test_severity/`` and ``test_frequency/`` packages once they land.
-"""
+"""Smoke tests: imports, base hierarchy, registry mechanics, MLE helper
+sanity. Per-distribution numerical tests live in ``test_severity_*`` and
+``test_frequency_*`` modules."""
 
 from __future__ import annotations
 
@@ -139,12 +138,17 @@ class TestDistributionFitter:
         assert fitter.candidates == []
         assert fitter.results_ is None
 
-    def test_fit_and_rank_not_yet_implemented(self) -> None:
+    def test_fit_and_rank_empty_returns_empty(self) -> None:
+        fitter = DistributionFitter(candidates=[])
+        assert fitter.fit_and_rank([1.0, 2.0]) == []
+        assert fitter.results_ == []
+
+    def test_fit_and_rank_rejects_unknown_criterion(self) -> None:
         import pytest
 
         fitter = DistributionFitter(candidates=[])
-        with pytest.raises(NotImplementedError):
-            fitter.fit_and_rank([1.0, 2.0])
+        with pytest.raises(ValueError):
+            fitter.fit_and_rank([1.0, 2.0], criterion="ric")
 
 
 class TestGoodnessOfFit:
@@ -153,19 +157,21 @@ class TestGoodnessOfFit:
         assert gof.distribution is None
         assert len(gof.data) == 3
 
-    def test_methods_pending_phase_3(self) -> None:
+    def test_methods_require_distribution(self) -> None:
         import pytest
 
         gof = GoodnessOfFit(distribution=None, data=np.array([1.0]))
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(ValueError):
             gof.ks_test()
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(ValueError):
             gof.anderson_darling_test()
+        with pytest.raises(ValueError):
+            gof.chi_squared_test()
 
 
 class TestMleHelpersExist:
-    """The driver functions should be importable; exhaustive testing waits
-    until concrete distributions can be plugged into them in Phase 1."""
+    """Driver functions are importable. Numerical coverage lives in the
+    per-distribution test modules."""
 
     def test_callables(self) -> None:
         for f in (

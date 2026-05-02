@@ -1,39 +1,13 @@
 [![PyPI version](https://img.shields.io/pypi/v/actudist?color=blue)](https://pypi.org/project/actudist/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Status: Alpha](https://img.shields.io/badge/status-alpha-orange.svg)]()
 
 # actudist
 
-**Actuarial probability distributions — heavy tails, MLE fitting, and goodness-of-fit.**
-
----
-
-## What is actudist?
-
-`scipy.stats` provides a solid foundation for statistical distributions, but it
-falls short for actuarial practitioners in several important ways:
-
-- **Missing actuarial-specific distributions.** Burr Type XII, Inverse
-  Paralogistic, Transformed Beta, Transformed Gamma, and other heavy-tail
-  severity models central to P&C loss modeling are absent or require awkward
-  reparameterizations.
-- **No zero-inflated models.** Frequency data in insurance almost always
-  exhibits excess zeros. ZIP and ZINB belong in any actuarial distribution
-  toolkit.
-- **No actuarial fitting workflows.** Real loss data is censored by policy
-  limits, truncated by deductibles, and observed through excess layers.
-  `scipy.stats.fit` does not handle any of these.
-- **No layer statistics.** Limited expected values, excess pure premiums, and
-  increased limits factors are first-class concepts in pricing — they should be
-  first-class methods on every distribution object.
-
-`actudist` fills these gaps with a focused, opinionated library: 23+
-distributions parameterized the way actuaries expect, MLE fitting that respects
-censoring and truncation, profile likelihood confidence intervals, and a
-complete goodness-of-fit testing suite.
-
----
+Python library for P&C loss distributions. Severity and frequency families
+follow the parameterizations in Klugman, *Loss Models*. Every severity
+distribution exposes layer statistics (LEV, excess pure premium, ILF) as
+methods. MLE accepts right-censored and one- or two-sided truncated samples.
 
 ## Installation
 
@@ -46,58 +20,52 @@ From source:
 ```bash
 git clone https://github.com/CosmikArt/actudist.git
 cd actudist
-pip install -e .
+pip install -e ".[dev]"
 ```
-
----
 
 ## Quickstart
 
-Fit a Burr XII to claim severity data, compare against Lognormal and Pareto
-via AIC, then run goodness-of-fit tests:
-
 ```python
 import numpy as np
-from actudist.core import BurrXII, DistributionFitter, GoodnessOfFit
+from actudist import DistributionFitter, GoodnessOfFit
+from actudist.severity.lognormal import Lognormal
 
-# Simulated claim severity data (right-skewed, heavy-tailed)
 rng = np.random.default_rng(42)
-claims = np.concatenate([
-    rng.lognormal(mean=8.0, sigma=1.5, size=800),
-    rng.pareto(a=1.5, size=200) * 50_000,
-])
+claims = Lognormal(mu=8.0, sigma=1.2).rvs(size=2000, random_state=rng)
 
-# Fit a Burr XII distribution via MLE
-burr = BurrXII()
-burr.mle_fit(claims)
-print(f"Burr XII AIC: {burr.aic(claims):.1f}")
+fit = Lognormal()
+fit.mle_fit(claims)
+print(f"mu={fit.mu:.3f}  sigma={fit.sigma:.3f}")
+print(f"AIC={fit.aic(claims):.1f}  BIC={fit.bic(claims):.1f}")
+print(f"LEV(50000)={fit.limited_expected_value(50_000):.1f}")
+print(f"EPP(50000)={fit.excess_pure_premium(50_000):.1f}")
 
-# Compare multiple candidates
-fitter = DistributionFitter(candidates=["BurrXII", "Lognormal", "Pareto"])
-rankings = fitter.fit_and_rank(claims, criterion="aic")
-print(rankings)
+fitter = DistributionFitter(["Lognormal", "Pareto", "Weibull"])
+ranking = fitter.fit_and_rank(claims, criterion="aic")
+for row in ranking:
+    print(f"{row['name']:12s}  aic={row['aic']:.1f}")
 
-# Goodness-of-fit testing
-gof = GoodnessOfFit(distribution=burr, data=claims)
-gof.ks_test()
-gof.anderson_darling_test()
-gof.qq_plot()
+gof = GoodnessOfFit(fit, claims)
+result = gof.ks_test(n_boot=200, random_state=42)
+print(f"KS stat={result['statistic']:.4f}  p={result['p_value']:.3f}")
 ```
 
----
+## Modules
 
-## Features
+- `actudist.severity`: 13 continuous distributions (Exponential, Pareto,
+  Lognormal, Weibull, Gamma, Burr XII, Log-Logistic, Paralogistic and its
+  inverse, Inverse Gaussian, Transformed and Inverse Transformed Gamma,
+  Transformed Beta).
+- `actudist.frequency`: Poisson, Binomial, Geometric, Negative Binomial,
+  ZIP, ZINB.
+- `actudist.fitting`: registries and `DistributionFitter` for AIC/BIC
+  ranking.
+- `actudist.gof`: KS and Anderson-Darling with parametric-bootstrap
+  p-values, chi-squared, PP and QQ plots.
+- `actudist.layers`: excess pure premium, ILF, finite-layer expected loss.
 
-| Module | Description |
-|---|---|
-| `severity` | 13+ heavy-tail distributions: Pareto, Lognormal, Weibull, Burr Type XII, Generalized Pareto, Inverse Gaussian, Log-Logistic, Paralogistic, Inverse Paralogistic, Transformed Beta, Transformed Gamma, and more |
-| `frequency` | Poisson, Negative Binomial, Binomial, Zero-Inflated Poisson (ZIP), Zero-Inflated Negative Binomial (ZINB) |
-| `compound` | Compound distributions: Poisson-Gamma, Poisson-Lognormal, NB-Pareto, and custom frequency-severity combinations |
-| `fitting` | MLE with support for censored and truncated data, profile likelihood confidence intervals, censored/truncated likelihood contributions |
-| `gof` | Kolmogorov-Smirnov, Anderson-Darling, Chi-squared tests, PP plots, QQ plots, AIC/BIC model comparison |
-| `layers` | Excess-of-loss layer statistics: limited expected value (LEV), excess pure premium, increased limits factors |
-
----
+`profile_likelihood_ci` lives on the base class; call it on any fitted
+instance.
 
 ## References
 
@@ -106,26 +74,12 @@ gof.qq_plot()
 - Hogg, R. V. & Klugman, S. A. *Loss Distributions*. Wiley.
 - Society of Actuaries. Exam STAM / FAM syllabus and study materials.
 
----
-
 ## Contributing
 
-Contributions are welcome. Please open an issue first to discuss proposed
-changes. All code must include type hints, docstrings, and unit tests.
-
-```bash
-git clone https://github.com/CosmikArt/actudist.git
-cd actudist
-pip install -e ".[dev]"
-pytest
-```
-
----
+Run `pytest` before sending a PR.
 
 ## Author
 
-**Isaac López**
-
----
+Isaac López
 
 MIT License. See [LICENSE](LICENSE).

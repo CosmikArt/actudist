@@ -1,5 +1,5 @@
-"""Numerical helpers shared by distributions: stable log/exp, root finding,
-numerical LEV via quadrature, and parameter-space transforms."""
+"""Shared numerics: stable ``log``, Brent inversion of CDFs, quadrature LEV,
+and parameter-space transforms used by the MLE driver."""
 
 from __future__ import annotations
 
@@ -29,11 +29,8 @@ def numeric_ppf(
     upper: float = 1e12,
     xtol: float = 1e-10,
 ) -> float:
-    """Invert ``cdf`` numerically via Brent's method.
-
-    Used as a fallback for distributions whose quantile function lacks a
-    closed form. Caller guarantees ``cdf(lower) <= q <= cdf(upper)``.
-    """
+    """Invert ``cdf`` via Brent's method. Caller guarantees
+    ``cdf(lower) <= q <= cdf(upper)``."""
     if not 0.0 < q < 1.0:
         if q == 0.0:
             return lower
@@ -50,11 +47,8 @@ def numeric_lev(
     epsabs: float = 1e-10,
     epsrel: float = 1e-10,
 ) -> float:
-    r"""Numerical limited expected value: :math:`\int_0^d S(x)\,dx`.
-
-    Used either as a fallback when no closed form is known, or as a test
-    oracle to validate closed-form LEV implementations.
-    """
+    r"""Quadrature LEV: :math:`\int_0^d S(x)\,dx`. Fallback when no closed
+    form exists, and a test oracle for closed-form implementations."""
     if d <= 0:
         return 0.0
     val, _ = quad(survival_function, 0.0, d, epsabs=epsabs, epsrel=epsrel)
