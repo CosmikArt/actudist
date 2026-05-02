@@ -70,8 +70,12 @@ def loglik_continuous(
         ll += float(np.sum(safe_log(np.asarray(dist.survival_function(cens)))))
 
     if trunc_lower is not None or trunc_upper is not None:
-        s_lower = 1.0 if trunc_lower is None else float(dist.survival_function(trunc_lower))
-        s_upper = 0.0 if trunc_upper is None else float(dist.survival_function(trunc_upper))
+        s_lower = (
+            1.0 if trunc_lower is None else float(dist.survival_function(trunc_lower))
+        )
+        s_upper = (
+            0.0 if trunc_upper is None else float(dist.survival_function(trunc_upper))
+        )
         prob = s_lower - s_upper
         if prob <= 0:
             return -np.inf
@@ -122,8 +126,12 @@ def fit_continuous_mle(
     bounds = [bounds_unconstrained] * len(u0)
     res = minimize(neg_ll, u0, method="L-BFGS-B", bounds=bounds)
     if not res.success:
-        res = minimize(neg_ll, u0, method="Nelder-Mead",
-                       options={"xatol": 1e-8, "fatol": 1e-8, "maxiter": 5000})
+        res = minimize(
+            neg_ll,
+            u0,
+            method="Nelder-Mead",
+            options={"xatol": 1e-8, "fatol": 1e-8, "maxiter": 5000},
+        )
 
     return from_unconstrained(np.asarray(res.x), transforms)
 
@@ -206,7 +214,9 @@ def profile_likelihood_ci(
                 return _HUGE
 
         res = minimize(
-            _neg, u0, method="Nelder-Mead",
+            _neg,
+            u0,
+            method="Nelder-Mead",
             options={"xatol": 1e-6, "fatol": 1e-6, "maxiter": 2000},
         )
         return -float(res.fun)
@@ -300,7 +310,11 @@ def fit_discrete_mle(
     bounds = [bounds_unconstrained] * len(u0)
     res = minimize(neg_ll, u0, method="L-BFGS-B", bounds=bounds)
     if not res.success:
-        res = minimize(neg_ll, u0, method="Nelder-Mead",
-                       options={"xatol": 1e-8, "fatol": 1e-8, "maxiter": 5000})
+        res = minimize(
+            neg_ll,
+            u0,
+            method="Nelder-Mead",
+            options={"xatol": 1e-8, "fatol": 1e-8, "maxiter": 5000},
+        )
 
     return from_unconstrained(np.asarray(res.x), transforms)

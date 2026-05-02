@@ -88,9 +88,7 @@ class TestFitContinuousNonFiniteGuard:
         log-likelihood is ``-inf`` everywhere. The optimizer must not
         propagate that. It should map it to ``_HUGE`` and finish."""
         data = np.array([0.5, 1.0, 1.5])
-        params = fit_continuous_mle(
-            Exponential, data, trunc_lower=5.0, trunc_upper=5.0
-        )
+        params = fit_continuous_mle(Exponential, data, trunc_lower=5.0, trunc_upper=5.0)
         # only care that the call returns
         assert "theta" in params
 
@@ -354,9 +352,7 @@ class TestWalkExhaustionPaths:
         # at least one endpoint should fail to bracket
         assert np.isinf(lo) or np.isinf(hi)
 
-    def test_logit_first_step_up_clamps_when_pi_near_one(
-        self, monkeypatch
-    ) -> None:
+    def test_logit_first_step_up_clamps_when_pi_near_one(self, monkeypatch) -> None:
         """Build a synthetic fit at pi=0.97 directly (no MLE) and run
         profile-CI on pi: the very first +1 outer step lands at 1.02 and
         must be clamped via the line-236 branch."""

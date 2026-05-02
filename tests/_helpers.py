@@ -13,7 +13,9 @@ from scipy.integrate import quad
 from actudist._numerics import numeric_lev
 
 
-def assert_pdf_integrates_to_one(dist, upper: float = np.inf, tol: float = 1e-4) -> None:
+def assert_pdf_integrates_to_one(
+    dist, upper: float = np.inf, tol: float = 1e-4
+) -> None:
     val, _ = quad(lambda x: float(dist.pdf(x)), 0.0, upper, limit=400)
     assert abs(val - 1.0) < tol, f"pdf integrates to {val}, not 1"
 
@@ -48,6 +50,4 @@ def assert_mean_matches_survival_integral(
     val, _ = quad(lambda x: float(dist.survival_function(x)), 0.0, upper, limit=400)
     expected = float(dist.mean())
     denom = max(abs(expected), 1.0)
-    assert abs(val - expected) / denom < tol, (
-        f"E[X]={expected} vs ∫S dx={val}"
-    )
+    assert abs(val - expected) / denom < tol, f"E[X]={expected} vs ∫S dx={val}"

@@ -26,9 +26,7 @@ class Lognormal(SeverityDistribution):
 
     n_params = 2
 
-    def __init__(
-        self, mu: float | None = None, sigma: float | None = None
-    ) -> None:
+    def __init__(self, mu: float | None = None, sigma: float | None = None) -> None:
         if mu is None and sigma is None:
             super().__init__(params=None)
             return

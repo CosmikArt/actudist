@@ -71,11 +71,7 @@ class TransformedGamma(SeverityDistribution):
         log_z = np.log(xv) - np.log(th)
         with np.errstate(over="ignore"):
             log_pdf = (
-                np.log(t)
-                + a * t * log_z
-                - np.exp(t * log_z)
-                - np.log(xv)
-                - gammaln(a)
+                np.log(t) + a * t * log_z - np.exp(t * log_z) - np.log(xv) - gammaln(a)
             )
         out[m] = np.exp(np.maximum(log_pdf, -700.0))
         return out

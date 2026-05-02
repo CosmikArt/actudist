@@ -26,9 +26,7 @@ class Pareto(SeverityDistribution):
 
     n_params = 2
 
-    def __init__(
-        self, alpha: float | None = None, theta: float | None = None
-    ) -> None:
+    def __init__(self, alpha: float | None = None, theta: float | None = None) -> None:
         if alpha is None and theta is None:
             super().__init__(params=None)
             return

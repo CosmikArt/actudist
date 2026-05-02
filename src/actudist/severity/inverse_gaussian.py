@@ -30,9 +30,7 @@ class InverseGaussian(SeverityDistribution):
 
     n_params = 2
 
-    def __init__(
-        self, mu: float | None = None, beta: float | None = None
-    ) -> None:
+    def __init__(self, mu: float | None = None, beta: float | None = None) -> None:
         if mu is None and beta is None:
             super().__init__(params=None)
             return
@@ -86,7 +84,12 @@ class InverseGaussian(SeverityDistribution):
         qs = np.atleast_1d(q)
         upper = max(self.mu * 100.0, 1e6)
         out = np.array(
-            [numeric_ppf(lambda x, qi=qi: float(self.cdf(x)), float(qi), 1e-12, upper) for qi in qs]
+            [
+                numeric_ppf(
+                    lambda x, qi=qi: float(self.cdf(x)), float(qi), 1e-12, upper
+                )
+                for qi in qs
+            ]
         )
         return float(out[0]) if scalar_in else out
 

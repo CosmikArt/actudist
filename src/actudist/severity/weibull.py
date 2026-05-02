@@ -28,9 +28,7 @@ class Weibull(SeverityDistribution):
 
     n_params = 2
 
-    def __init__(
-        self, theta: float | None = None, tau: float | None = None
-    ) -> None:
+    def __init__(self, theta: float | None = None, tau: float | None = None) -> None:
         if theta is None and tau is None:
             super().__init__(params=None)
             return

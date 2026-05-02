@@ -268,7 +268,9 @@ class TestRemainingSeverityBranches:
         d = InverseTransformedGamma()
         assert d.params is None
 
-    def test_inverse_transformed_gamma_mle_uses_transforms_and_initial_guess(self) -> None:
+    def test_inverse_transformed_gamma_mle_uses_transforms_and_initial_guess(
+        self,
+    ) -> None:
         rng = np.random.default_rng(0)
         data = InverseTransformedGamma(alpha=3.0, theta=1.5, tau=1.5).rvs(
             size=2_000, random_state=rng

@@ -101,9 +101,7 @@ class DistributionFitter:
         rows: list[dict[str, Any]] = []
         for cand in self.candidates:
             inst = _resolve(cand)
-            name = (
-                cand if isinstance(cand, str) else type(inst).__name__
-            )
+            name = cand if isinstance(cand, str) else type(inst).__name__
             row: dict[str, Any] = {"name": name, "distribution": inst}
             try:
                 inst.mle_fit(data, **fit_kwargs)

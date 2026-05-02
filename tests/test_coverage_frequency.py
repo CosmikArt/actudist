@@ -96,7 +96,7 @@ class TestCdfPpfPaths:
         # k > m or k < 0 returns 0; non-integer also returns 0
         assert d.pmf(np.array([6, -1]))[0] == 0.0
         assert d.pmf(np.array([6, -1]))[1] == 0.0
-        assert d.pmf(np.array([2.5])) [0] == 0.0
+        assert d.pmf(np.array([2.5]))[0] == 0.0
 
     def test_negative_binomial_cdf_and_ppf(self) -> None:
         d = NegativeBinomial(r=2.0, beta=1.5)
@@ -174,8 +174,12 @@ class TestEmptyConstruction:
     @pytest.mark.parametrize(
         "cls",
         [
-            Poisson, Binomial, NegativeBinomial, Geometric,
-            ZeroInflatedPoisson, ZeroInflatedNegativeBinomial,
+            Poisson,
+            Binomial,
+            NegativeBinomial,
+            Geometric,
+            ZeroInflatedPoisson,
+            ZeroInflatedNegativeBinomial,
         ],
     )
     def test_empty_args(self, cls) -> None:

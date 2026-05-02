@@ -25,9 +25,7 @@ class LogLogistic(SeverityDistribution):
 
     n_params = 2
 
-    def __init__(
-        self, theta: float | None = None, gamma: float | None = None
-    ) -> None:
+    def __init__(self, theta: float | None = None, gamma: float | None = None) -> None:
         if theta is None and gamma is None:
             super().__init__(params=None)
             return
@@ -104,9 +102,7 @@ class LogLogistic(SeverityDistribution):
         zg = (d / th) ** g
         u = zg / (1.0 + zg)
         if g > 1.0:
-            ratio = np.exp(
-                gammaln(1.0 + 1.0 / g) + gammaln(1.0 - 1.0 / g)
-            )
+            ratio = np.exp(gammaln(1.0 + 1.0 / g) + gammaln(1.0 - 1.0 / g))
             first = th * ratio * betainc(1.0 + 1.0 / g, 1.0 - 1.0 / g, u)
         else:
             from actudist._numerics import numeric_lev

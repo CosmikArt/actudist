@@ -24,9 +24,7 @@ class Binomial(FrequencyDistribution):
 
     n_params = 1  # only q is fit; m is structural
 
-    def __init__(
-        self, m: int | None = None, q: float | None = None
-    ) -> None:
+    def __init__(self, m: int | None = None, q: float | None = None) -> None:
         if m is None and q is None:
             super().__init__(params=None)
             return

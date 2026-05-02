@@ -25,9 +25,7 @@ class NegativeBinomial(FrequencyDistribution):
 
     n_params = 2
 
-    def __init__(
-        self, r: float | None = None, beta: float | None = None
-    ) -> None:
+    def __init__(self, r: float | None = None, beta: float | None = None) -> None:
         if r is None and beta is None:
             super().__init__(params=None)
             return
@@ -77,13 +75,16 @@ class NegativeBinomial(FrequencyDistribution):
         # scipy's nbinom uses (n=r, p=1/(1+β))
         k = np.asarray(k)
         return np.asarray(
-            _sp_nbinom.cdf(np.floor(k), n=self.r, p=1.0 / (1.0 + self.beta)), dtype=float
+            _sp_nbinom.cdf(np.floor(k), n=self.r, p=1.0 / (1.0 + self.beta)),
+            dtype=float,
         )
 
     def ppf(self, q: ArrayLike) -> np.ndarray:
         from scipy.stats import nbinom as _sp_nbinom
 
-        return _sp_nbinom.ppf(np.asarray(q, dtype=float), n=self.r, p=1.0 / (1.0 + self.beta))
+        return _sp_nbinom.ppf(
+            np.asarray(q, dtype=float), n=self.r, p=1.0 / (1.0 + self.beta)
+        )
 
     def rvs(
         self, size: int = 1, random_state: int | np.random.Generator | None = None

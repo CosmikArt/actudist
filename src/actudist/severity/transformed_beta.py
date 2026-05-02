@@ -49,7 +49,12 @@ class TransformedBeta(SeverityDistribution):
             return
         if alpha is None or theta is None or gamma is None or tau is None:
             raise ValueError("TransformedBeta needs alpha, theta, gamma, tau")
-        for nm, v in [("alpha", alpha), ("theta", theta), ("gamma", gamma), ("tau", tau)]:
+        for nm, v in [
+            ("alpha", alpha),
+            ("theta", theta),
+            ("gamma", gamma),
+            ("tau", tau),
+        ]:
             if v <= 0:
                 raise ValueError(f"{nm} must be > 0; got {v}")
         super().__init__(
@@ -81,7 +86,9 @@ class TransformedBeta(SeverityDistribution):
         }
 
     def _log_norm_const(self) -> float:
-        return float(gammaln(self.alpha + self.tau) - gammaln(self.alpha) - gammaln(self.tau))
+        return float(
+            gammaln(self.alpha + self.tau) - gammaln(self.alpha) - gammaln(self.tau)
+        )
 
     def pdf(self, x: ArrayLike) -> np.ndarray:
         x = np.asarray(x, dtype=float)
@@ -134,10 +141,7 @@ class TransformedBeta(SeverityDistribution):
         a, g, t = self.alpha, self.gamma, self.tau
         return float(
             np.exp(
-                gammaln(t + 1.0 / g)
-                + gammaln(a - 1.0 / g)
-                - gammaln(t)
-                - gammaln(a)
+                gammaln(t + 1.0 / g) + gammaln(a - 1.0 / g) - gammaln(t) - gammaln(a)
             )
         )
 

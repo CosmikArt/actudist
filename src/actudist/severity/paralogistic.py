@@ -24,9 +24,7 @@ class Paralogistic(SeverityDistribution):
 
     n_params = 2
 
-    def __init__(
-        self, alpha: float | None = None, theta: float | None = None
-    ) -> None:
+    def __init__(self, alpha: float | None = None, theta: float | None = None) -> None:
         if alpha is None and theta is None:
             super().__init__(params=None)
             return
@@ -96,7 +94,8 @@ class Paralogistic(SeverityDistribution):
         if a <= 1.0:
             return float("inf")
         return float(
-            self.theta * np.exp(gammaln(1.0 + 1.0 / a) + gammaln(a - 1.0 / a) - gammaln(a))
+            self.theta
+            * np.exp(gammaln(1.0 + 1.0 / a) + gammaln(a - 1.0 / a) - gammaln(a))
         )
 
     def limited_expected_value(self, d: float) -> float:
@@ -106,9 +105,7 @@ class Paralogistic(SeverityDistribution):
         za = (d / th) ** a
         u = za / (1.0 + za)
         if a > 1.0:
-            ratio = np.exp(
-                gammaln(1.0 + 1.0 / a) + gammaln(a - 1.0 / a) - gammaln(a)
-            )
+            ratio = np.exp(gammaln(1.0 + 1.0 / a) + gammaln(a - 1.0 / a) - gammaln(a))
             first = th * ratio * betainc(1.0 + 1.0 / a, a - 1.0 / a, u)
         else:
             from actudist._numerics import numeric_lev

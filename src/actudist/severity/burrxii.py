@@ -76,7 +76,8 @@ class BurrXII(SeverityDistribution):
         log_z = np.log(xv) - np.log(th)  # log(x/θ)
         with np.errstate(over="ignore"):
             log_pdf = (
-                np.log(a) + np.log(g)
+                np.log(a)
+                + np.log(g)
                 + g * log_z
                 - np.log(xv)
                 - (a + 1.0) * np.log1p(np.exp(g * log_z))
