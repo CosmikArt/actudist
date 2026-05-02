@@ -29,6 +29,8 @@ class InverseGaussian(SeverityDistribution):
     """
 
     n_params = 2
+    mu: float
+    beta: float
 
     def __init__(self, mu: float | None = None, beta: float | None = None) -> None:
         if mu is None and beta is None:

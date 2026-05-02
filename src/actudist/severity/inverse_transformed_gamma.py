@@ -31,6 +31,9 @@ class InverseTransformedGamma(SeverityDistribution):
     """
 
     n_params = 3
+    alpha: float
+    theta: float
+    tau: float
 
     def __init__(
         self,

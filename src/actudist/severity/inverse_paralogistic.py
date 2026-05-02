@@ -24,6 +24,8 @@ class InverseParalogistic(SeverityDistribution):
     """
 
     n_params = 2
+    tau: float
+    theta: float
 
     def __init__(self, tau: float | None = None, theta: float | None = None) -> None:
         if tau is None and theta is None:

@@ -24,6 +24,8 @@ class LogLogistic(SeverityDistribution):
     """
 
     n_params = 2
+    theta: float
+    gamma: float
 
     def __init__(self, theta: float | None = None, gamma: float | None = None) -> None:
         if theta is None and gamma is None:

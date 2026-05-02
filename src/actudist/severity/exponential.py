@@ -22,6 +22,7 @@ class Exponential(SeverityDistribution):
     """
 
     n_params = 1
+    theta: float
 
     def __init__(self, theta: float | None = None) -> None:
         if theta is None:

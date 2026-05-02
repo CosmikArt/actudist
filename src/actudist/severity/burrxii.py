@@ -34,6 +34,9 @@ class BurrXII(SeverityDistribution):
     """
 
     n_params = 3
+    alpha: float
+    theta: float
+    gamma: float
 
     def __init__(
         self,

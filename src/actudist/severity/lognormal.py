@@ -25,6 +25,8 @@ class Lognormal(SeverityDistribution):
     """
 
     n_params = 2
+    mu: float
+    sigma: float
 
     def __init__(self, mu: float | None = None, sigma: float | None = None) -> None:
         if mu is None and sigma is None:

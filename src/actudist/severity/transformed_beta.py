@@ -36,6 +36,10 @@ class TransformedBeta(SeverityDistribution):
     """
 
     n_params = 4
+    alpha: float
+    theta: float
+    gamma: float
+    tau: float
 
     def __init__(
         self,

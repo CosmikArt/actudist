@@ -21,6 +21,7 @@ class Poisson(FrequencyDistribution):
     """
 
     n_params = 1
+    lam: float
 
     def __init__(self, lam: float | None = None) -> None:
         if lam is None:

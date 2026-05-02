@@ -24,6 +24,8 @@ class ZeroInflatedPoisson(FrequencyDistribution):
     """
 
     n_params = 2
+    pi: float
+    lam: float
 
     def __init__(self, pi: float | None = None, lam: float | None = None) -> None:
         if pi is None and lam is None:

@@ -20,6 +20,7 @@ class Geometric(FrequencyDistribution):
     """
 
     n_params = 1
+    beta: float
 
     def __init__(self, beta: float | None = None) -> None:
         if beta is None:

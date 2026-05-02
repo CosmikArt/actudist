@@ -24,6 +24,8 @@ class NegativeBinomial(FrequencyDistribution):
     """
 
     n_params = 2
+    r: float
+    beta: float
 
     def __init__(self, r: float | None = None, beta: float | None = None) -> None:
         if r is None and beta is None:

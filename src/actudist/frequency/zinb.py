@@ -28,6 +28,9 @@ class ZeroInflatedNegativeBinomial(FrequencyDistribution):
     """
 
     n_params = 3
+    pi: float
+    r: float
+    beta: float
 
     def __init__(
         self,
