@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from actudist import DistributionFitter
 from actudist.severity.lognormal import Lognormal
@@ -24,7 +23,6 @@ class TestFitAndRank:
         assert names[0] == "Lognormal"
 
     def test_bic_criterion_returns_sorted_list(self) -> None:
-        rng = np.random.default_rng(0)
         data = np.random.default_rng(0).exponential(scale=1.5, size=500)
         fitter = DistributionFitter(candidates=["Exponential", "Lognormal", "Weibull"])
         rows = fitter.fit_and_rank(data, criterion="bic")

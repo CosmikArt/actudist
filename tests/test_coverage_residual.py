@@ -10,13 +10,11 @@ import pytest
 
 from actudist._mle import (
     loglik_continuous,
-    loglik_discrete,
     profile_likelihood_ci,
 )
 from actudist.base import SeverityDistribution
 from actudist.fitting import DistributionFitter, register_severity
 from actudist.frequency.negative_binomial import NegativeBinomial
-from actudist.frequency.poisson import Poisson
 from actudist.frequency.zip import ZeroInflatedPoisson
 from actudist.severity.burrxii import BurrXII
 from actudist.severity.exponential import Exponential

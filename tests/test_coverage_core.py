@@ -15,7 +15,6 @@ from actudist._mle import (
     fit_discrete_mle,
     loglik_continuous,
     loglik_discrete,
-    profile_likelihood_ci,
 )
 from actudist._numerics import (
     from_unconstrained,
@@ -29,8 +28,6 @@ from actudist.base import (
     SeverityDistribution,
 )
 from actudist.fitting import (
-    FREQUENCY_REGISTRY,
-    SEVERITY_REGISTRY,
     DistributionFitter,
     _resolve,
     register_frequency,

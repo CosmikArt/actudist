@@ -7,7 +7,6 @@ import matplotlib
 matplotlib.use("Agg")
 
 import numpy as np
-import pytest
 
 from actudist import GoodnessOfFit
 from actudist.severity.exponential import Exponential

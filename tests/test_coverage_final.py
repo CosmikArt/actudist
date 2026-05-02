@@ -15,12 +15,9 @@ import pytest
 from actudist._mle import (
     fit_continuous_mle,
     fit_discrete_mle,
-    profile_likelihood_ci,
 )
-from actudist.fitting import DistributionFitter
 from actudist.frequency.binomial import Binomial
 from actudist.frequency.geometric import Geometric
-from actudist.frequency.zinb import ZeroInflatedNegativeBinomial
 from actudist.frequency.zip import ZeroInflatedPoisson
 from actudist.severity.exponential import Exponential
 from actudist.severity.lognormal import Lognormal
@@ -133,9 +130,6 @@ class TestProfileLikelihoodMonkeyPatchedFailures:
         """If ``brentq`` itself raises (e.g., the bracketed function flips
         sign more than once due to numerical noise), ``_walk`` swallows
         the exception and returns ``None`` (so the endpoint is +/-inf)."""
-        from scipy import optimize as _opt
-
-        original = _opt.brentq
 
         def failing_brentq(*args, **kwargs):
             raise ValueError("synthetic brentq failure")
@@ -184,7 +178,6 @@ class TestWalkLogitDirectionUpClamp:
         """Build a fitted ZIP whose ``pi`` is so close to 1 that the
         initial outer step in the +1 direction crosses 1.0; the helper
         must clamp it to ``(point + 1.0) / 2`` instead."""
-        d = ZeroInflatedPoisson(pi=0.97, lam=1.0)
         # synthesize "data" with very high zero rate
         rng = np.random.default_rng(0)
         n = 500
