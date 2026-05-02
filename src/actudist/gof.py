@@ -8,7 +8,6 @@ estimated from the same sample.
 
 from __future__ import annotations
 
-from copy import deepcopy
 from typing import Any
 
 import numpy as np

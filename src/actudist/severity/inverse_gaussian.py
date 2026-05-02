@@ -85,9 +85,7 @@ class InverseGaussian(SeverityDistribution):
         upper = max(self.mu * 100.0, 1e6)
         out = np.array(
             [
-                numeric_ppf(
-                    lambda x, qi=qi: float(self.cdf(x)), float(qi), 1e-12, upper
-                )
+                numeric_ppf(lambda x: float(self.cdf(x)), float(qi), 1e-12, upper)
                 for qi in qs
             ]
         )
